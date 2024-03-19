@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: welcome-app
+  labels:
+    app: welcome-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: welcome-app
+  template:
+    metadata:
+      labels:
+        app: welcome-app
+    spec:
+      containers:
+      - name: welcome
+        image: computerboyhcu/welcome:v7
+        ports:
+        - containerPort: 8090
