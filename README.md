@@ -4,4 +4,5 @@ This is a test app to connect to a web server hosted on the public cloud to prin
 ## Basic Technologies
 - Python
 - Docker
-- Kubernetes
+- Kubernetes (Azure Kubernetes Service)
+- Terraform (IaC)

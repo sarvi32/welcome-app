@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: welcome
-        image: computerboyhcu/welcome:v7
+        image: NEW_IMAGE_TAG
         ports:
         - containerPort: 8090
