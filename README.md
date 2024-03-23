@@ -1,29 +1,26 @@
 # Welcome App
 
 ## Introduction
-This is a test app to connect to a web server hosted on the public cloud to print a sample text output.\
-URL: http://welcome.southindia.cloudapp.azure.com
+This is a test app to connect to a web server hosted on the public cloud to print a sample text output.
+- Application URL: http://welcome.southindia.cloudapp.azure.com
 
 ## Source Code
-- [Python](https://www.python.org/doc/)
+- Python\
+The main source is written in [Python](https://www.python.org/doc/) and leverages the [Flask](https://flask.palletsprojects.com/en/3.0.x/) web app technology.
 
-The main source is written in python and leverages the [Flask](https://flask.palletsprojects.com/en/3.0.x/) web app technology.
-
-## Packaging
-- [Docker](https://docs.docker.com/)
-
-This app is published as a docker container.
+## Containerization
+- Docker\
+This app is published as a [Docker](https://docs.docker.com/) container.
 
 ## Orchestration
-- [Kubernetes](https://kubernetes.io/docs/home/) ([Azure Kubernetes Service](https://azure.microsoft.com/en-in/products/kubernetes-service))
-
-The docker container is deployed on Kubernetes.
+- Kubernetes ([Azure Kubernetes Service](https://azure.microsoft.com/en-in/products/kubernetes-service))\
+The docker container is deployed on [Kubernetes](https://kubernetes.io/docs/home/).
 
 ## Infrastructure as Code
 - Hashicorp [Terraform](https://developer.hashicorp.com/terraform/docs)
 - Relevant Terraform [Providers](https://registry.terraform.io/browse/providers)
 
-The backend infrastructure is build in the public cloud on Azure with the following components:
+The backend infrastructure is build in the public cloud on [Azure](https://azure.microsoft.com/) with the following components:
 - Resource Group
 - Virtual Network (VNet)
 - Network Subnet
@@ -31,6 +28,5 @@ The backend infrastructure is build in the public cloud on Azure with the follow
 - Static Public IP address with DNS prefix
 
 ## CI/CD
-- GitHub Actions
-
-Automated deployment using Github Actions workflow to build infrastructure, build and push docker image, deploy application to AKS cluster.
+- GitHub Actions\
+Automated deployment using [Github Actions](https://github.com/features/actions) workflow to build infrastructure, build and push docker image, deploy application to AKS cluster.
