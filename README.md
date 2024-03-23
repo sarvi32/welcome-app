@@ -20,7 +20,7 @@ The docker container is deployed on [Kubernetes](https://kubernetes.io/docs/home
 - Hashicorp [Terraform](https://developer.hashicorp.com/terraform/docs)
 - Relevant Terraform [Providers](https://registry.terraform.io/browse/providers)
 
-The backend infrastructure is build in the public cloud on [Azure](https://azure.microsoft.com/) with the following components:
+The backend infrastructure is built in the public cloud on [Azure](https://azure.microsoft.com/) with the following components:
 - Resource Group
 - Virtual Network (VNet)
 - Network Subnet
