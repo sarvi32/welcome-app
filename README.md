@@ -1,7 +1,7 @@
 # Welcome App
 
 ## Introduction
-This is a test app to connect to a web server hosted on the public cloud to print a sample text output. \\
+This is a test app to connect to a web server hosted on the public cloud to print a sample text output.\
 URL: http://welcome.southindia.cloudapp.azure.com
 
 ## Source Code
@@ -21,6 +21,7 @@ The docker container is deployed on Kubernetes.
 
 ## Infrastructure as Code
 - Hashicorp [Terraform](https://developer.hashicorp.com/terraform/docs)
+- Relevant Terraform [Providers](https://registry.terraform.io/browse/providers)
 
 The backend infrastructure is build in the public cloud on Azure with the following components:
 - Resource Group
@@ -28,3 +29,8 @@ The backend infrastructure is build in the public cloud on Azure with the follow
 - Network Subnet
 - Azure Kubernetes Service (AKS) cluster
 - Static Public IP address with DNS prefix
+
+## CI/CD
+- GitHub Actions
+
+Automated deployment using Github Actions workflow to build infrastructure, build and push docker image, deploy application to AKS cluster.
