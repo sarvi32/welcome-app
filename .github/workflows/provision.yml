@@ -1,0 +1,169 @@
+name: 'Provision, Build, Deploy'
+
+# Set trigger condition to any remote push to the 'main' branch
+on:
+  push:
+    branches: [ "main" ]
+
+# Set workflow permission
+permissions:
+  contents: read
+
+# Create 3 jobs: provision, build, deploy
+
+jobs:
+  # Job 1: Provision the following infra on Azure using Terraform:
+  # - Resource group
+  # - Virtual Network (VNet)
+  # - Subnet in the above VNet
+  # - Azure Kubernetes Service (AKS) cluster
+  # - Network Contributor permission for AKS service principal in the subscription
+  # - Public IP address with DNS prefix
+  provision:
+    name: Terraform Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        # Set working directory to ensure the job has access to the TF files
+        working-directory: ./terraform
+    outputs:
+      # Set the public IP addres as output so that it can be used later
+      AZURE_PUBLIC_IP: ${{ steps.set-pip.outputs.AZURE_PUBLIC_IP }}
+
+    steps:
+    
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    # Install and configure Terraform CLI to run on Terraform Cloud
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    # Initialize a new or existing Terraform working directory
+    - name: Terraform Init
+      run: terraform init
+
+    # Generates a plan for Terraform
+    - name: Terraform Plan
+      run: terraform plan -input=false
+
+    # Apply Terraform plan
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -input=false
+    
+    # Extract Public IP from outputs and set it as an environment variable
+    - name: Set IP from Terraform Output to Environment variables
+      id: set-pip
+      # run: echo "AZURE_PUBLIC_IP=$(terraform-bin output -json | jq -r '."welcome_public_ip"."value"')" >> $GITHUB_ENV
+      run: echo "AZURE_PUBLIC_IP=$(terraform-bin output -json | jq -r '."welcome_public_ip"."value"')" >> $GITHUB_OUTPUT
+    
+    # Test environment variable from runtime
+    - name: Print Public IP from Env var in output parameters
+      env:
+        AZURE_PUBLIC_IP: ${{ steps.set-pip.outputs.AZURE_PUBLIC_IP }}
+      run: echo $AZURE_PUBLIC_IP
+
+
+  build:
+    # Job 2: Build docker image and push it to dockerhub
+    needs: provision
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        # Set working directory where the Dockerfile and primary source code existsis present
+        working-directory: ./src
+    outputs:
+      # Set docker image name:tag into a single variable for use later
+      DOCKER_IMAGE_TAG: ${{ steps.image-tag.outputs.DOCKER_IMAGE_TAG }}
+    
+    steps:
+      
+    - uses: actions/checkout@v4
+    
+    - uses: docker/login-action@v3
+      with:
+        # Credentials for dockerhub used from Actions secrets
+        registry: https://index.docker.io/v1/
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    
+    # The tag is generated using the built-in SHA hash in GitHub
+    - name: Generate image tag
+      id: image-tag
+      run: echo "DOCKER_IMAGE_TAG=computerboyhcu/welcome-cicd:${{ github.sha }}" >> $GITHUB_OUTPUT
+    
+    # Build and push the docker image
+    - name: Build Docker image
+      env:
+        DOCKER_IMAGE_TAG: ${{ steps.image-tag.outputs.DOCKER_IMAGE_TAG }}
+      run: |
+        set
+        echo "Building $DOCKER_IMAGE_TAG"
+        docker build . -t $DOCKER_IMAGE_TAG
+        docker push $DOCKER_IMAGE_TAG
+
+  deploy:
+    # Job 3: Set relevant values to the Kubernetes (k8s) manifests and deploy them to AKS
+    needs: [provision, build]
+    name: Kubernetes (AKS) Deploy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        # The working directory is the k8s manifests dir
+        working-directory: ./kubernetes/manifests
+
+    steps:
+    
+    - uses: actions/checkout@v4
+    
+    # Docker image name:tag value from Job 2 is updated in the deployment.yaml file
+    - name: Set image tag
+      env:
+        DOCKER_IMAGE_TAG: ${{ needs.build.outputs.DOCKER_IMAGE_TAG }}
+      run: |
+        set
+        echo $DOCKER_IMAGE_TAG
+        cat deployment.yaml
+        sed -i "s|IMAGE_FROM_CICD|${{ env.DOCKER_IMAGE_TAG }}|g" deployment.yaml
+        cat deployment.yaml
+    
+    # Public IP from Job 1 is updated in the service.yaml file
+    - name: Public IP for Azure cloudapp
+      env:
+        AZURE_PUBLIC_IP: ${{ needs.provision.outputs.AZURE_PUBLIC_IP }}
+      run: |
+        set
+        echo $AZURE_PUBLIC_IP
+        cat service.yaml
+        sed -i "s|ASSIGNED_PUBLIC_IP|${{ env. AZURE_PUBLIC_IP }}|g" service.yaml
+        cat service.yaml
+
+    - uses: azure/setup-kubectl@v4
+
+    # Authenticate to Azure using SPN
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    # Set the target AKS cluster
+    - uses: Azure/aks-set-context@v4
+      with:
+        cluster-name: devops-aks
+        resource-group: DevOps_Beta
+    
+    # The manifests are deployed and ensured they start successfully on AKS
+    - uses: Azure/k8s-deploy@v5
+      with:
+          action: deploy
+          manifests: |
+            manifests/deployment.yaml
+            manifests/service.yaml
+          images: |
+            ${{ env.DOCKER_IMAGE_TAG}}
