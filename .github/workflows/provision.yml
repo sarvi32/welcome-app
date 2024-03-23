@@ -103,7 +103,6 @@ jobs:
       env:
         DOCKER_IMAGE_TAG: ${{ steps.image-tag.outputs.DOCKER_IMAGE_TAG }}
       run: |
-        set
         echo "Building $DOCKER_IMAGE_TAG"
         docker build . -t $DOCKER_IMAGE_TAG
         docker push $DOCKER_IMAGE_TAG
@@ -128,10 +127,9 @@ jobs:
       env:
         DOCKER_IMAGE_TAG: ${{ needs.build.outputs.DOCKER_IMAGE_TAG }}
       run: |
-        set
         echo $DOCKER_IMAGE_TAG
         cat deployment.yaml
-        sed -i "s|IMAGE_FROM_CICD|${{ env.DOCKER_IMAGE_TAG }}|g" deployment.yaml
+        sed -i "s|NEW_IMAGE_TAG|${{ env.DOCKER_IMAGE_TAG }}|g" deployment.yaml
         cat deployment.yaml
     
     # Public IP from Job 1 is updated in the service.yaml file
@@ -139,7 +137,6 @@ jobs:
       env:
         AZURE_PUBLIC_IP: ${{ needs.provision.outputs.AZURE_PUBLIC_IP }}
       run: |
-        set
         echo $AZURE_PUBLIC_IP
         cat service.yaml
         sed -i "s|ASSIGNED_PUBLIC_IP|${{ env. AZURE_PUBLIC_IP }}|g" service.yaml
@@ -163,7 +160,7 @@ jobs:
       with:
           action: deploy
           manifests: |
-            manifests/deployment.yaml
-            manifests/service.yaml
+            kubernetes/manifests/deployment.yaml
+            kubernetes/manifests/service.yaml
           images: |
             ${{ env.DOCKER_IMAGE_TAG}}
