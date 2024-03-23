@@ -96,7 +96,7 @@ jobs:
     # The tag is generated using the built-in SHA hash in GitHub
     - name: Generate image tag
       id: image-tag
-      run: echo "DOCKER_IMAGE_TAG=computerboyhcu/welcome-cicd:${{ github.sha }}" >> $GITHUB_OUTPUT
+      run: echo "DOCKER_IMAGE_TAG=computerboyhcu/welcome-app:${{ github.sha }}" >> $GITHUB_OUTPUT
     
     # Build and push the docker image
     - name: Build Docker image

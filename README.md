@@ -1,23 +1,27 @@
 # Welcome App
 
 ## Introduction
-This is a test app to connect to a web server hosted on the public cloud to print a sample text output.
+This is a test app to connect to a web server hosted on the public cloud to print a sample text output. \\
 URL: http://welcome.southindia.cloudapp.azure.com
 
 ## Source Code
-- Python
+- [Python](https://www.python.org/doc/)
+
 The main source is written in python and leverages the [Flask](https://flask.palletsprojects.com/en/3.0.x/) web app technology.
 
 ## Packaging
-- Docker
+- [Docker](https://docs.docker.com/)
+
 This app is published as a docker container.
 
 ## Orchestration
-- Kubernetes (Azure Kubernetes Service)
+- [Kubernetes](https://kubernetes.io/docs/home/) ([Azure Kubernetes Service](https://azure.microsoft.com/en-in/products/kubernetes-service))
+
 The docker container is deployed on Kubernetes.
 
 ## Infrastructure as Code
-- Hashicorp Terraform (Cloud)
+- Hashicorp [Terraform](https://developer.hashicorp.com/terraform/docs)
+
 The backend infrastructure is build in the public cloud on Azure with the following components:
 - Resource Group
 - Virtual Network (VNet)
